@@ -616,6 +616,19 @@ async function saveFile() {
     try { await dl.save({ filename: "progression-grand-oral.json", data: txt }); st.textContent = "Fichier enregistré. Pour reprendre : « Reprendre depuis un fichier »."; toast("Progression enregistrée dans un fichier."); return; }
     catch (e) { if (e && (e.code === "declined" || e.code === "rate_limited")) return; }
   }
+  if (!FRAMED) {
+    // Site autonome (hors claude.ai) : vrai téléchargement d'un fichier, rangé dans l'app Fichiers sur iPhone
+    try {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([txt], { type: "application/json" }));
+      a.download = "progression-grand-oral-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+      st.textContent = "Fichier enregistré (sur iPhone : app Fichiers, dossier Téléchargements). Pour reprendre : « Reprendre depuis un fichier ».";
+      toast("Progression enregistrée dans un fichier.");
+      return;
+    } catch (e) {}
+  }
   const ta = $("#imp-text"); ta.value = txt; ta.focus(); ta.select();
   try { navigator.clipboard.writeText(txt).then(() => { st.textContent = "Enregistrement en fichier indisponible ici : la progression est copiée, colle-la dans une note pour la garder."; }, () => { st.textContent = "Le texte de ta progression est sélectionné dans le champ plus bas : copie-le dans une note."; }); } catch (e) { st.textContent = "Le texte de ta progression est sélectionné dans le champ plus bas : copie-le dans une note."; }
 }
